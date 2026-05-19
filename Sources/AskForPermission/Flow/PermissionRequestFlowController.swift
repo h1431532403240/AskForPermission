@@ -54,15 +54,15 @@ final class PermissionRequestFlowController {
             w.isVisible && !w.isMiniaturized && w.frame.intersects(initialSourceRect)
         }
 
-        Self.diagLog.log("[AFP-DIAG] initialSourceRect=\(initialSourceRect) sourceWindow=\(sourceWindow?.frame.debugDescription ?? "nil")")
-        Self.diagLog.log("[AFP-DIAG] NSScreen.screens=\(NSScreen.screens.map { $0.frame })")
+        Self.diagLog.log("[AFP-DIAG] initialSourceRect=\(String(describing: initialSourceRect)) sourceWindow=\(sourceWindow?.frame.debugDescription ?? "nil")")
+        Self.diagLog.log("[AFP-DIAG] NSScreen.screens=\(NSScreen.screens.map { String(describing: $0.frame) })")
         Self.diagLog.log("[AFP-DIAG] NSScreen.main=\(NSScreen.main?.frame.debugDescription ?? "nil")")
 
         try await SystemSettingsOpener.open(kind)
 
         let tracker = SystemSettingsWindowTracker()
         let settingsFrame = try await tracker.waitForWindow(timeout: .seconds(6))
-        Self.diagLog.log("[AFP-DIAG] settingsFrame(CG)=\(settingsFrame)")
+        Self.diagLog.log("[AFP-DIAG] settingsFrame(CG)=\(String(describing: settingsFrame))")
 
         // System Settings is now frontmost. Reactivate our app and pull the
         // source window back on top so the flight's starting frame is visible.
@@ -87,7 +87,7 @@ final class PermissionRequestFlowController {
         // position — the user may have dragged the host window between the
         // click and System Settings actually appearing.
         let sourceFrame = sourceRectProvider()
-        Self.diagLog.log("[AFP-DIAG] panel.frame.size=\(panel.frame.size) targetFrame(AppKit)=\(targetFrame) sourceFrame=\(sourceFrame)")
+        Self.diagLog.log("[AFP-DIAG] panel.frame.size=\(String(describing: panel.frame.size)) targetFrame(AppKit)=\(String(describing: targetFrame)) sourceFrame=\(String(describing: sourceFrame))")
 
         let targetImage = renderPanelSnapshot(panel: panel, targetFrame: targetFrame)
 
@@ -213,7 +213,7 @@ final class PermissionRequestFlowController {
         let appKitSettings = convertToAppKitCoordinates(settingsFrame)
         let screen = NSScreen.screens.first { $0.frame.intersects(appKitSettings) } ?? NSScreen.main
         let visible = screen?.visibleFrame ?? appKitSettings
-        Self.diagLog.log("[AFP-DIAG] dockedFrame: settingsCG=\(settingsFrame) appKitSettings=\(appKitSettings) matched.screen.frame=\(screen?.frame.debugDescription ?? "nil") visible=\(visible) panel.size=\(size)")
+        Self.diagLog.log("[AFP-DIAG] dockedFrame: settingsCG=\(String(describing: settingsFrame)) appKitSettings=\(String(describing: appKitSettings)) matched.screen.frame=\(screen?.frame.debugDescription ?? "nil") visible=\(String(describing: visible)) panel.size=\(String(describing: size))")
 
         // Dock the card INSIDE the Settings window, aligned to its bottom-right
         // corner with a fixed inset. AppKit Y is bottom-up, so `minY` is the
@@ -341,7 +341,7 @@ final class PermissionRequestFlowController {
         panel.alphaValue = 1
         panel.orderFrontRegardless()
         replicant.orderOut(nil)
-        Self.diagLog.log("[AFP-DIAG] entrance done — panel.frame=\(panel.frame) panel.isVisible=\(panel.isVisible) panel.alphaValue=\(panel.alphaValue) panel.level=\(panel.level.rawValue) panel.screen=\(panel.screen?.frame.debugDescription ?? "nil")")
+        Self.diagLog.log("[AFP-DIAG] entrance done — panel.frame=\(String(describing: panel.frame)) panel.isVisible=\(panel.isVisible) panel.alphaValue=\(panel.alphaValue) panel.level=\(panel.level.rawValue) panel.screen=\(panel.screen?.frame.debugDescription ?? "nil")")
     }
 
     // MARK: - Reverse transition (target → source with reversed curves)
