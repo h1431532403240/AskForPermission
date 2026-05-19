@@ -82,12 +82,32 @@ final class SystemSettingsWindowTracker {
             return nil
         }
 
+        // Match by PID, not by `kCGWindowOwnerName`. The English-only strings
+        // ("System Settings" / "System Preferences") fail on non-English
+        // macOS installs (zh-Hant uses "系統設定", ja "システム設定", etc.) —
+        // CGWindowList returns the localised display name, the predicate
+        // misses every window, and `waitForWindow(timeout:)` times out with
+        // `.settingsWindowNotFound`. The flow then aborts before the flight
+        // card can render, so non-English users see System Settings open
+        // (via the URL scheme) but never see the drag guide.
+        //
+        // Looking up the PID via NSRunningApplication.runningApplications(
+        // withBundleIdentifier: "com.apple.systempreferences") is locale-
+        // independent and consistent with `activateSystemSettings()` at the
+        // tail of the flow which already uses the same bundle ID lookup.
+        let settingsPIDs: Set<Int> = Set(
+            NSRunningApplication
+                .runningApplications(withBundleIdentifier: "com.apple.systempreferences")
+                .map { Int($0.processIdentifier) }
+        )
+        if settingsPIDs.isEmpty { return nil }
+
         // Pick the LARGEST qualifying Settings window so transient popovers /
         // secondary panels don't win over the main window.
         var best: CGRect?
         for info in infoList {
-            guard let ownerName = info[kCGWindowOwnerName] as? String,
-                  ownerName == "System Settings" || ownerName == "System Preferences"
+            guard let pid = info[kCGWindowOwnerPID] as? Int,
+                  settingsPIDs.contains(pid)
             else {
                 continue
             }
